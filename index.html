@@ -6,19 +6,22 @@
     <title>NoVelia - Story Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // POLYFILL: Define process to prevent libraries from crashing
-      window.process = {
+      // POLYFILL: Define process safely
+      window.process = window.process || {
         env: {
           NODE_ENV: 'production'
         }
       };
       
-      // Global Error Handler to debug White Screen issues
-      window.addEventListener('error', function(event) {
+      // Global Error Handler
+      function showError(message) {
         const root = document.getElementById('root');
-        console.error("Global Error:", event.error);
-        if (root && root.innerHTML === '') {
+        if (root && root.innerHTML.trim() === '') {
+          const existingError = document.getElementById('app-error-display');
+          if (existingError) return;
+
           const errorDiv = document.createElement('div');
+          errorDiv.id = 'app-error-display';
           errorDiv.style.padding = '20px';
           errorDiv.style.color = '#dc2626';
           errorDiv.style.backgroundColor = '#fef2f2';
@@ -26,9 +29,21 @@
           errorDiv.style.margin = '20px';
           errorDiv.style.borderRadius = '8px';
           errorDiv.style.border = '1px solid #fecaca';
-          errorDiv.innerHTML = '<h3 style="font-weight:bold; margin-bottom:8px">Application Error</h3><p>' + event.message + '</p><p style="font-size:12px; margin-top:8px; color:#991b1b">Check console for details.</p>';
+          errorDiv.style.zIndex = '9999';
+          errorDiv.style.position = 'relative';
+          errorDiv.innerHTML = '<h3 style="font-weight:bold; margin-bottom:8px">Application Error</h3><p>' + message + '</p><p style="font-size:12px; margin-top:8px; color:#991b1b">Check console for details (F12).</p>';
           document.body.prepend(errorDiv);
         }
+      }
+
+      window.addEventListener('error', function(event) {
+        console.error("Global Error:", event.error);
+        showError(event.message || "Unknown Error");
+      });
+
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error("Unhandled Rejection:", event.reason);
+        showError(event.reason ? event.reason.message || event.reason : "Unknown Async Error");
       });
 
       tailwind.config = {
@@ -36,7 +51,7 @@
         theme: {
           extend: {
             colors: {
-              paper: '#fdfbf7', // Warm paper color for reading
+              paper: '#fdfbf7',
               'paper-dark': '#1a1a1a',
               ink: '#2d2d2d',
               'ink-light': '#555555',
@@ -50,25 +65,16 @@
       }
     </script>
     <style>
-      /* Custom Scrollbar for a cleaner look */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
   <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@18.3.1",
+    "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
     "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
     "react-dom": "https://esm.sh/react-dom@18.3.1",
     "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?deps=react@18.3.1,react-dom@18.3.1",
