@@ -9,6 +9,7 @@ const SUPABASE_KEY = 'sb_publishable_vwMziZtnW1yvlHcsunY74w_52GDl759';
 let supabaseClient = null;
 
 try {
+  // Check if URL is still the default placeholder or empty
   const isPlaceholderUrl = !SUPABASE_URL || SUPABASE_URL.includes('YOUR_SUPABASE_PROJECT_URL');
 
   if (isPlaceholderUrl) {
