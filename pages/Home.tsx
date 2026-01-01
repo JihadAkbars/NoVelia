@@ -8,6 +8,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 export const Home: React.FC = () => {
   const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
   
@@ -16,8 +17,13 @@ export const Home: React.FC = () => {
   const [isTranslating, setIsTranslating] = useState(false);
 
   useEffect(() => {
-    const fetchedStories = StorageService.getStories();
-    setStories(fetchedStories);
+    const fetchStories = async () => {
+      setLoading(true);
+      const fetchedStories = await StorageService.getStories();
+      setStories(fetchedStories);
+      setLoading(false);
+    };
+    fetchStories();
   }, []);
 
   // Handle Translation
@@ -114,8 +120,7 @@ export const Home: React.FC = () => {
               Written by the Owner, Read by You
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
-              Unlike other platforms, NoVelia is a focused collection where every chapter is personally crafted and curated by the admin. 
-              No distractions, no user uploads—just pure, uninterrupted storytelling designed for the reader.
+              Unlike other platforms, NoVelia offers a carefully curated experience where each chapter is personally crafted by its owner, Jihad. With no distractions and no user uploads, it delivers pure, uninterrupted storytelling designed entirely for the reader.
             </p>
           </div>
         </div>
@@ -163,7 +168,9 @@ export const Home: React.FC = () => {
                 {language !== 'Original' && <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-1 block">Translated to {language}</span>}
               </div>
               <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-800 shadow-sm">
-                 {isTranslating ? (
+                 {loading ? (
+                    <span className="flex items-center text-sm text-gray-500"><Loader2 size={16} className="animate-spin mr-2"/> Loading...</span>
+                 ) : isTranslating ? (
                    <span className="flex items-center text-sm text-indigo-600 dark:text-indigo-400 font-medium animate-pulse">
                      <Loader2 size={16} className="animate-spin mr-2"/> Translating content...
                    </span>
@@ -173,7 +180,11 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            {filteredStories.length > 0 ? (
+            {loading ? (
+                <div className="flex justify-center py-20">
+                    <Loader2 size={40} className="animate-spin text-indigo-500" />
+                </div>
+            ) : filteredStories.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredStories.map(story => (
                   <StoryCard key={story.id} story={story} />
