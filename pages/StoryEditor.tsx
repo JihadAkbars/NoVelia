@@ -13,7 +13,7 @@ export const StoryEditor: React.FC = () => {
 
   const [formData, setFormData] = useState<Partial<Story>>({
     title: '',
-    author: 'Admin',
+    author: 'Jihad',
     authorBio: '',
     synopsis: '',
     genre: 'Fantasy',
@@ -26,10 +26,13 @@ export const StoryEditor: React.FC = () => {
         navigate('/admin/login');
         return;
     }
-    if (id) {
-      const story = StorageService.getStory(id);
-      if (story) setFormData(story);
-    }
+    const fetch = async () => {
+      if (id) {
+        const story = await StorageService.getStory(id);
+        if (story) setFormData(story);
+      }
+    };
+    fetch();
   }, [id, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -53,12 +56,12 @@ export const StoryEditor: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     const newStory: Story = {
-      id: id || Date.now().toString(),
+      id: id || crypto.randomUUID(), // Generate UUID for Supabase
       title: formData.title!,
       author: formData.author!,
       authorBio: formData.authorBio,
@@ -69,11 +72,10 @@ export const StoryEditor: React.FC = () => {
       createdAt: (formData as Story).createdAt || Date.now(),
     };
 
-    StorageService.saveStory(newStory);
-    setTimeout(() => {
-        setLoading(false);
-        navigate('/admin/dashboard');
-    }, 500);
+    await StorageService.saveStory(newStory);
+    
+    setLoading(false);
+    navigate('/admin/dashboard');
   };
 
   return (
