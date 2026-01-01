@@ -16,7 +16,6 @@
       // Global Error Handler
       function showError(message) {
         const root = document.getElementById('root');
-        // Only show error overlay if root is empty or still showing loading state
         if (root && (root.innerHTML.trim() === '' || root.innerText.includes('Loading'))) {
           const existingError = document.getElementById('app-error-display');
           if (existingError) return;
@@ -91,8 +90,8 @@
     "@google/genai": "https://esm.sh/@google/genai",
     "lucide-react": "https://esm.sh/lucide-react@0.344.0?deps=react@18.3.1",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
   }
 }
 </script>
