@@ -1,17 +1,23 @@
 import { GoogleGenAI } from "@google/genai";
 
+const getEnv = (key: string) => {
+  try {
+    // @ts-ignore
+    if (typeof process !== 'undefined' && process.env) return process.env[key];
+    // @ts-ignore
+    if (typeof window !== 'undefined' && window.process && window.process.env) return window.process.env[key];
+  } catch (e) {
+    return undefined;
+  }
+  return undefined;
+};
+
 const getClient = () => {
   // Use environment variable or fallback to the provided key
   let apiKey = "AIzaSyBv7gStdBvPPe65FdWJe7D8DJsh1hZe_oc";
   
-  try {
-    // Safety check for browser environments where process might not be defined
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      apiKey = process.env.API_KEY;
-    }
-  } catch (e) {
-    // Ignore ReferenceError for process
-  }
+  const envKey = getEnv('API_KEY');
+  if (envKey) apiKey = envKey;
   
   if (!apiKey) {
     console.error("Gemini API Key is missing.");
