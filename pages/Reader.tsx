@@ -44,7 +44,9 @@ export const Reader: React.FC = () => {
   const fetchChapter = async (id: string) => {
     setLoading(true);
     try {
-      const { data: cData } = await supabase.from('chapters').select('*').eq('id', id).single();
+      const { data: cData, error: cErr } = await supabase.from('chapters').select('*').eq('id', id).single();
+      if (cErr) throw cErr;
+
       if (cData) {
         setChapter(cData);
         const { data: sData } = await supabase.from('stories').select('*').eq('id', cData.story_id).single();
@@ -54,6 +56,7 @@ export const Reader: React.FC = () => {
       }
     } catch (err) {
       console.error("Reader load error:", err);
+      setChapter(null);
     } finally {
       setLoading(false);
       window.scrollTo(0, 0);
@@ -82,7 +85,9 @@ export const Reader: React.FC = () => {
 
   const highlightText = (text: string, search: string) => {
     if (!search.trim()) return text;
-    const regex = new RegExp(`(${search})`, 'gi');
+    // Escape special regex characters to prevent crashes
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedSearch})`, 'gi');
     return text.split(regex).map((part, i) => 
       part.toLowerCase() === search.toLowerCase() ? <mark key={i} className="bg-amber-500 text-zinc-950 font-bold px-0.5 rounded-sm">{part}</mark> : part
     );
@@ -92,6 +97,16 @@ export const Reader: React.FC = () => {
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center space-y-4">
       <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
       <p className="text-zinc-500 text-sm font-bold tracking-widest uppercase">Opening Manuscript...</p>
+    </div>
+  );
+
+  if (!chapter) return (
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
+      <h1 className="text-2xl font-black text-zinc-100 mb-4">Chapter Not Found</h1>
+      <p className="text-zinc-500 mb-8 max-w-md">The manuscript you are looking for has been moved or deleted.</p>
+      <Link to="/" className="px-8 py-3 bg-amber-500 text-zinc-950 font-bold rounded-xl transition-all hover:scale-105">
+        Return to Library
+      </Link>
     </div>
   );
 
@@ -105,7 +120,7 @@ export const Reader: React.FC = () => {
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              {story?.title}
+              {story?.title || 'Back to Story'}
             </Link>
           </div>
 
