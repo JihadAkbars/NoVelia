@@ -4,44 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NoVelia - Story Platform</title>
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Safe process polyfill -->
     <script>
-      // POLYFILL: Define process safely for browser environment
       window.process = window.process || {
         env: {
-          NODE_ENV: 'production',
-          API_KEY: ''
+          NODE_ENV: 'production'
         }
       };
-      
-      // Global Error Handler for better debugging
-      window.addEventListener('error', function(event) {
-        console.error("Global Error Detected:", event.error || event.message);
-        const root = document.getElementById('root');
-        
-        // If we see Error #31 or "object with keys", it's definitely a React version mismatch
-        const isReactError = event.message && (
-          event.message.includes('Error #31') || 
-          event.message.includes('object with keys') || 
-          event.message.includes('$$typeof')
-        );
+    </script>
 
-        if (isReactError && root) {
-          root.innerHTML = `
-            <div style="padding: 40px; text-align: center; font-family: sans-serif; color: #7f1d1d; background: #fef2f2; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-              <h2 style="font-weight: bold; font-size: 24px; margin-bottom: 10px;">Library Conflict Detected</h2>
-              <p style="margin-bottom: 20px; max-width: 500px; color: #991b1b;">Your browser loaded a mixture of React 18 and React 19. We have corrected the settings, but you need to clear your cache.</p>
-              <div style="margin-bottom: 30px; font-family: monospace; font-size: 11px; background: #fee2e2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca; text-align: left; max-width: 90%; overflow-x: auto; white-space: pre-wrap;">
-                ${event.message}
-              </div>
-              <button onclick="location.reload(true)" style="padding: 12px 28px; background: #b91c1c; color: white; border-radius: 99px; border: none; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                Hard Refresh & Clear Cache
-              </button>
-            </div>
-          `;
-        }
-      });
-
+    <!-- Tailwind config -->
+    <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
@@ -50,48 +27,48 @@
               paper: '#fdfbf7',
               'paper-dark': '#1a1a1a',
               ink: '#2d2d2d',
-              'ink-light': '#555555',
-            },
-            fontFamily: {
-              serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
-              sans: ['"Inter"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+              'ink-light': '#555555'
             }
           }
         }
-      }
+      };
     </script>
+
+    <!-- ✅ FIXED IMPORT MAP: REACT 18 ONLY -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1",
+        "react-dom": "https://esm.sh/react-dom@18.3.1",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+        "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+
+        "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?deps=react@18.3.1,react-dom@18.3.1",
+        "lucide-react": "https://esm.sh/lucide-react@0.344.0?deps=react@18.3.1,react-dom@18.3.1",
+        "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7",
+        "@google/genai": "https://esm.sh/@google/genai"
+      }
+    }
+    </script>
+
     <style>
       ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-      ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
     </style>
-    <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.3.1",
-    "react-dom": "https://esm.sh/react-dom@18.3.1",
-    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-    "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
-    "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?deps=react@18.3.1,react-dom@18.3.1",
-    "lucide-react": "https://esm.sh/lucide-react@0.344.0?deps=react@18.3.1,react-dom@18.3.1",
-    "@google/genai": "https://esm.sh/@google/genai",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7?deps=react@18.3.1",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
-  }
-}
-</script>
   </head>
-  <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300">
+
+  <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
     <div id="root">
-       <div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;font-family:sans-serif;color:#666;">
-          <div style="width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          <div style="margin-top: 20px; font-weight: 500; color: #1e293b;">Restoring NoVelia...</div>
-          <div id="loading-subtext" style="margin-top: 10px; font-size: 12px; opacity: 0.6;">Cleaning up library versions</div>
-       </div>
+      <div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;font-family:sans-serif;color:#666;">
+        <div style="width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:#4f46e5;border-radius:50%;animation:spin 1s linear infinite;"></div>
+        <div style="margin-top:20px;font-weight:500;">Initializing NoVelia...</div>
+      </div>
     </div>
+
+    <!-- App entry -->
     <script type="module" src="./index.tsx"></script>
   </body>
 </html>
