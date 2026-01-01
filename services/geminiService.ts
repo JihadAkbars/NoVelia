@@ -1,26 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 
-const getEnv = (key: string) => {
-  try {
-    // @ts-ignore
-    if (typeof process !== 'undefined' && process.env) return process.env[key];
-    // @ts-ignore
-    if (typeof window !== 'undefined' && window.process && window.process.env) return window.process.env[key];
-  } catch (e) {
-    return undefined;
-  }
-  return undefined;
-};
-
 const getClient = () => {
-  // Use environment variable or fallback to the provided key
-  let apiKey = "AIzaSyBv7gStdBvPPe65FdWJe7D8DJsh1hZe_oc";
-  
-  const envKey = getEnv('API_KEY');
-  if (envKey) apiKey = envKey;
+  // Use environment variable exclusively
+  const apiKey = process.env.API_KEY;
   
   if (!apiKey) {
-    console.error("Gemini API Key is missing.");
+    console.error("Gemini API Key is missing. Please set process.env.API_KEY");
     return null;
   }
   
