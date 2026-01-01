@@ -36,6 +36,8 @@ export const StorageService = {
   // Fetch all stories
   getStories: async (): Promise<Story[]> => {
     try {
+      if (!supabase) throw new Error("Supabase client not initialized");
+
       const { data, error } = await supabase
         .from('stories')
         .select('*')
@@ -64,6 +66,8 @@ export const StorageService = {
   // Fetch a single story
   getStory: async (id: string): Promise<Story | undefined> => {
     try {
+      if (!supabase) throw new Error("Supabase client not initialized");
+
       const { data, error } = await supabase
         .from('stories')
         .select('*')
@@ -104,6 +108,8 @@ export const StorageService = {
 
     // 2. Try Supabase
     try {
+      if (!supabase) return; // Skip if no client
+
       const dbStory = {
         id: story.id,
         title: story.title,
@@ -138,6 +144,8 @@ export const StorageService = {
 
     // 2. Try Supabase
     try {
+      if (!supabase) return;
+
       const { error } = await supabase.from('stories').delete().eq('id', id);
       if (error) throw error;
       
@@ -151,6 +159,8 @@ export const StorageService = {
   // Fetch chapters for a story
   getChaptersByStory: async (storyId: string): Promise<Chapter[]> => {
     try {
+      if (!supabase) throw new Error("Supabase client not initialized");
+
       const { data, error } = await supabase
         .from('chapters')
         .select('*')
@@ -179,6 +189,8 @@ export const StorageService = {
   // Fetch a single chapter
   getChapter: async (id: string): Promise<Chapter | undefined> => {
     try {
+      if (!supabase) throw new Error("Supabase client not initialized");
+
       const { data, error } = await supabase
         .from('chapters')
         .select('*')
@@ -216,6 +228,8 @@ export const StorageService = {
 
     // 2. Try Supabase
     try {
+      if (!supabase) return;
+
       const dbChapter = {
         id: chapter.id,
         story_id: chapter.storyId,
@@ -243,6 +257,7 @@ export const StorageService = {
 
     // 2. Try Supabase
     try {
+      if (!supabase) return;
       const { error } = await supabase.from('chapters').delete().eq('id', id);
       if (error) throw error;
     } catch (error) {
