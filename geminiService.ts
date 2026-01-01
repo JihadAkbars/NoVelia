@@ -5,15 +5,20 @@ import { GoogleGenAI } from "@google/genai";
  * Uses process.env.API_KEY which is injected by the environment.
  */
 
+const MODEL_NAME = 'gemini-flash-latest';
+
 export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable is not configured.");
+  const rawKey = process.env.API_KEY;
+  if (!rawKey) {
+    throw new Error("Gemini API Key is missing. Please ensure process.env.API_KEY is configured.");
   }
   
+  const apiKey = rawKey.trim();
+  
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: MODEL_NAME,
       contents: `You are a professional literary translator. Translate the following text into ${targetLanguage}. Maintain the story's emotional tone, paragraph structure, and narrative style. Only return the translated text: \n\n ${text}`,
     });
     
@@ -22,19 +27,26 @@ export const translateText = async (text: string, targetLanguage: string): Promi
     return result;
   } catch (error: any) {
     console.error("Gemini Translation Error:", error);
-    throw new Error(`Translation failed: ${error.message || 'Unknown error'}`);
+    const msg = error.message || '';
+    if (msg.toLowerCase().includes('api key not valid') || msg.includes('403') || msg.toLowerCase().includes('invalid')) {
+      throw new Error("The API key is invalid or restricted. Please verify it in your Google AI Studio dashboard and ensure the 'Generative Language API' is enabled for this key.");
+    }
+    throw new Error(`Translation failed: ${msg}`);
   }
 };
 
 export const improveGrammar = async (text: string): Promise<string> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable is not configured.");
+  const rawKey = process.env.API_KEY;
+  if (!rawKey) {
+    throw new Error("Gemini API Key is missing. Please ensure process.env.API_KEY is configured.");
   }
 
+  const apiKey = rawKey.trim();
+
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: MODEL_NAME,
       contents: `You are a world-class editor. Please improve the grammar, punctuation, and flow of the following story text. Ensure the vocabulary is engaging but keep the original meaning and tone exactly as it is. Only return the corrected text: \n\n ${text}`,
     });
     
@@ -43,7 +55,10 @@ export const improveGrammar = async (text: string): Promise<string> => {
     return result;
   } catch (error: any) {
     console.error("Gemini Grammar Error:", error);
-    // Provide a more descriptive error message to the user
-    throw new Error(`AI Editing failed: ${error.message || 'Check your internet connection or API quota.'}`);
+    const msg = error.message || '';
+    if (msg.toLowerCase().includes('api key not valid') || msg.includes('403') || msg.toLowerCase().includes('invalid')) {
+      throw new Error("The API key is invalid or restricted. Please verify it in your Google AI Studio dashboard and ensure the 'Generative Language API' is enabled for this key.");
+    }
+    throw new Error(`AI Editing failed: ${msg}`);
   }
 };
