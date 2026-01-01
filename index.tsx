@@ -7,13 +7,15 @@ import { ThemeProvider } from './contexts/ThemeContext';
 console.log("Starting NoVelia Application...");
 
 const rootElement = document.getElementById('root');
+
 if (!rootElement) {
-  console.error("Could not find root element to mount to");
+  document.body.innerHTML = '<div style="color:red; padding:20px;">CRITICAL ERROR: Root element not found.</div>';
   throw new Error("Could not find root element to mount to");
 }
 
 try {
   const root = ReactDOM.createRoot(rootElement);
+  
   root.render(
     <React.StrictMode>
       <ThemeProvider>
@@ -24,6 +26,12 @@ try {
     </React.StrictMode>
   );
   console.log("React mounted successfully.");
-} catch (error) {
-  console.error("Error mounting React app:", error);
+} catch (error: any) {
+  console.error("Error during React mount:", error);
+  rootElement.innerHTML = `
+    <div style="padding: 20px; text-align: center; font-family: sans-serif; color: #dc2626;">
+      <h3>Application Failed to Start</h3>
+      <p style="color: #666; font-size: 14px;">${error.message || error}</p>
+    </div>
+  `;
 }
