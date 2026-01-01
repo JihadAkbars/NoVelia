@@ -5,6 +5,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 console.log("Starting NoVelia Application...");
+console.log("React runtime version:", React.version);
 
 const rootElement = document.getElementById('root');
 
