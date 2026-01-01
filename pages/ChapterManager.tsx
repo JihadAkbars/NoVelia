@@ -73,7 +73,7 @@ export const ChapterManager: React.FC = () => {
           const improved = await GeminiService.improveContent(currentChapter.content);
           setCurrentChapter(prev => ({ ...prev, content: improved }));
       } catch (e) {
-          alert("AI Error");
+          alert("AI Error: Check console for details.");
       } finally {
           setAiLoading(false);
       }
@@ -113,11 +113,9 @@ export const ChapterManager: React.FC = () => {
                       <div>
                           <div className="flex justify-between items-center mb-1">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Content (HTML supported)</label>
-                            {process.env.API_KEY && (
-                                <button type="button" onClick={improveContent} disabled={aiLoading} className="text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:text-indigo-800 dark:hover:text-indigo-300 disabled:opacity-50">
-                                    <Wand2 size={12} /> {aiLoading ? 'Improving...' : 'AI Improve Grammar'}
-                                </button>
-                            )}
+                            <button type="button" onClick={improveContent} disabled={aiLoading} className="text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:text-indigo-800 dark:hover:text-indigo-300 disabled:opacity-50">
+                                <Wand2 size={12} /> {aiLoading ? 'Improving...' : 'AI Improve Grammar'}
+                            </button>
                           </div>
                           <textarea 
                               rows={15}
