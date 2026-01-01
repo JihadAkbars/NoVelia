@@ -5,6 +5,7 @@ import { GeminiService } from '../services/geminiService';
 import { Chapter, Story } from '../types';
 import { ArrowLeft, Settings, ChevronLeft, ChevronRight, Moon, Sun, BookOpen, Search, X, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export const Reader: React.FC = () => {
   const { chapterId } = useParams<{ chapterId: string }>();
@@ -14,22 +15,14 @@ export const Reader: React.FC = () => {
   const [allChapters, setAllChapters] = useState<Chapter[]>([]);
   
   const { language } = useLanguage();
+  const { theme: globalTheme, setTheme: setGlobalTheme } = useTheme();
+  
   const [displayChapter, setDisplayChapter] = useState<Chapter | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
 
   // Reading preferences state
   const [fontSize, setFontSize] = useState(18);
-  
-  // Initialize theme based on global preference
-  const [theme, setTheme] = useState<'light' | 'dark' | 'sepia'>(() => {
-    const storedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (storedTheme === 'dark' || (!storedTheme && systemPrefersDark)) {
-      return 'dark';
-    }
-    return 'light';
-  });
-  
+  const [sepiaMode, setSepiaMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
   // Search State
@@ -47,7 +40,6 @@ export const Reader: React.FC = () => {
         const chapters = StorageService.getChaptersByStory(c.storyId);
         setAllChapters(chapters);
         window.scrollTo(0, 0);
-        // Reset search when changing chapters
         setSearchQuery('');
         setShowSearch(false);
       }
@@ -93,23 +85,18 @@ export const Reader: React.FC = () => {
     if (!searchQuery.trim()) return { html: displayChapter.content, count: 0 };
     
     const query = searchQuery.trim();
-    // Escape regex special characters
     const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${safeQuery})`, 'gi');
     
-    // Split by HTML tags to only target text content and avoid breaking HTML attributes
     const parts = displayChapter.content.split(/(<[^>]+>)/g);
     let count = 0;
     
     const newParts = parts.map(part => {
-      // If it starts with <, it's a tag, return as is
       if (part.startsWith('<')) return part;
       
       return part.replace(regex, (match) => {
         count++;
         const isCurrent = count === currentMatch;
-        // Styles for highlights: Active (Orange) vs Passive (Yellow)
-        // Ensure high contrast text color (black/white) regardless of theme
         const activeClass = isCurrent 
           ? 'bg-orange-500 text-white shadow-sm ring-2 ring-orange-300 z-10 relative' 
           : 'bg-yellow-300 text-black';
@@ -121,7 +108,6 @@ export const Reader: React.FC = () => {
     return { html: newParts.join(''), count };
   }, [displayChapter, searchQuery, currentMatch]);
 
-  // Reset current match index when query changes
   useEffect(() => {
     if (searchQuery.trim()) {
       setCurrentMatch(1);
@@ -130,7 +116,6 @@ export const Reader: React.FC = () => {
     }
   }, [searchQuery]);
 
-  // Scroll active match into view
   useEffect(() => {
     if (currentMatch > 0 && showSearch) {
       const el = document.getElementById(`search-match-${currentMatch}`);
@@ -152,10 +137,7 @@ export const Reader: React.FC = () => {
 
   const toggleSearch = () => {
     setShowSearch(!showSearch);
-    if (!showSearch && searchQuery) {
-      // If reopening with existing query, ensure match index is valid
-      if (currentMatch === 0) setCurrentMatch(1);
-    }
+    if (!showSearch && searchQuery && currentMatch === 0) setCurrentMatch(1);
   };
 
   if (!displayChapter || !story) return <div className="p-10 text-center">Loading...</div>;
@@ -164,16 +146,21 @@ export const Reader: React.FC = () => {
   const prevChapter = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
   const nextChapter = currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
 
-  const themeClasses = {
-    light: 'bg-paper text-ink',
-    dark: 'bg-paper-dark text-gray-300',
-    sepia: 'bg-[#f4ecd8] text-[#5b4636]'
+  // Theme Logic
+  // If Sepia is active, it overrides Light/Dark for the content area background.
+  // The Navbar follows globalTheme.
+  
+  const getContainerClass = () => {
+    if (sepiaMode) return 'bg-[#f4ecd8] text-[#5b4636]';
+    return globalTheme === 'dark' ? 'bg-gray-950 text-gray-300' : 'bg-white text-gray-900';
   };
 
+  const navbarClass = globalTheme === 'dark' ? 'bg-gray-900 border-gray-800 text-gray-200' : 'bg-white border-gray-200 text-gray-800';
+
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${themeClasses[theme]}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${getContainerClass()}`}>
       {/* Navbar for Reader */}
-      <div className={`sticky top-0 z-50 transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border-b`}>
+      <div className={`sticky top-0 z-50 transition-colors duration-300 border-b ${navbarClass}`}>
         <div className="px-4 h-16 flex items-center justify-between">
           <Link to={`/story/${story.id}`} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
             <ArrowLeft size={20} />
@@ -205,7 +192,7 @@ export const Reader: React.FC = () => {
 
         {/* Search Toolbar */}
         {showSearch && (
-          <div className={`px-4 py-2 border-t flex items-center gap-2 animate-in slide-in-from-top-2 duration-200 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+          <div className={`px-4 py-2 border-t flex items-center gap-2 animate-in slide-in-from-top-2 duration-200 ${globalTheme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
             <div className="relative flex-grow max-w-md">
               <input 
                 type="text" 
@@ -220,7 +207,7 @@ export const Reader: React.FC = () => {
                   }
                   if (e.key === 'Escape') toggleSearch();
                 }}
-                className={`w-full pl-9 pr-4 py-1.5 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${theme === 'dark' ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'}`}
+                className={`w-full pl-9 pr-4 py-1.5 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${globalTheme === 'dark' ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'}`}
               />
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
             </div>
@@ -261,15 +248,15 @@ export const Reader: React.FC = () => {
             
             {/* Theme Toggle */}
             <div className="flex gap-2 mb-6">
-               <button onClick={() => setTheme('light')} className={`flex-1 p-2 rounded-lg border ${theme === 'light' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'}`}>
+               <button onClick={() => { setGlobalTheme('light'); setSepiaMode(false); }} className={`flex-1 p-2 rounded-lg border ${!sepiaMode && globalTheme === 'light' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'}`}>
                  <Sun size={18} className="mx-auto mb-1" />
                  <span className="text-xs block text-center">Light</span>
                </button>
-               <button onClick={() => setTheme('sepia')} className={`flex-1 p-2 rounded-lg border bg-[#f4ecd8] text-[#5b4636] ${theme === 'sepia' ? 'border-orange-500 ring-1 ring-orange-500' : 'border-gray-200 dark:border-gray-600'}`}>
+               <button onClick={() => setSepiaMode(true)} className={`flex-1 p-2 rounded-lg border bg-[#f4ecd8] text-[#5b4636] ${sepiaMode ? 'border-orange-500 ring-1 ring-orange-500' : 'border-gray-200 dark:border-gray-600'}`}>
                  <BookOpen size={18} className="mx-auto mb-1" />
                  <span className="text-xs block text-center">Sepia</span>
                </button>
-               <button onClick={() => setTheme('dark')} className={`flex-1 p-2 rounded-lg border bg-gray-900 text-gray-300 ${theme === 'dark' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200 dark:border-gray-600'}`}>
+               <button onClick={() => { setGlobalTheme('dark'); setSepiaMode(false); }} className={`flex-1 p-2 rounded-lg border bg-gray-900 text-gray-300 ${!sepiaMode && globalTheme === 'dark' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200 dark:border-gray-600'}`}>
                  <Moon size={18} className="mx-auto mb-1" />
                  <span className="text-xs block text-center">Dark</span>
                </button>
@@ -298,11 +285,11 @@ export const Reader: React.FC = () => {
       {/* Reading Content */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         <article className="prose max-w-none">
-            <h1 className={`font-serif text-center font-bold mb-12 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ fontSize: `${fontSize * 1.5}px` }}>
+            <h1 className={`font-serif text-center font-bold mb-12 ${globalTheme === 'dark' && !sepiaMode ? 'text-gray-100' : 'text-gray-900'}`} style={{ fontSize: `${fontSize * 1.5}px` }}>
               {displayChapter.title}
             </h1>
             <div 
-              className={`font-serif leading-relaxed space-y-6 ${theme === 'dark' ? 'prose-invert' : ''}`}
+              className={`font-serif leading-relaxed space-y-6 ${globalTheme === 'dark' && !sepiaMode ? 'prose-invert' : ''}`}
               style={{ fontSize: `${fontSize}px` }}
               dangerouslySetInnerHTML={{ __html: processedContent.html }}
             />
@@ -310,7 +297,7 @@ export const Reader: React.FC = () => {
       </div>
 
       {/* Navigation Footer */}
-      <div className={`max-w-4xl mx-auto px-4 py-12 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
+      <div className={`max-w-4xl mx-auto px-4 py-12 border-t ${globalTheme === 'dark' && !sepiaMode ? 'border-gray-800' : 'border-gray-100'}`}>
         <div className="flex justify-between items-center">
           {prevChapter ? (
             <Link 
