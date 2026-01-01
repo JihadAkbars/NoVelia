@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
@@ -25,78 +24,94 @@ export const StoryDetail: React.FC = () => {
   };
 
   if (loading) return (
-    <div className="max-w-4xl mx-auto px-4 py-20 text-center animate-pulse">
-      <div className="h-64 bg-zinc-800 rounded-3xl mb-8"></div>
-      <div className="h-10 bg-zinc-800 w-1/2 mx-auto rounded mb-4"></div>
-      <div className="h-4 bg-zinc-800 w-3/4 mx-auto rounded"></div>
+    <div className="max-w-5xl mx-auto px-6 py-20 animate-pulse">
+      <div className="flex flex-col md:flex-row gap-12">
+        <div className="w-full md:w-1/3 aspect-[2/3] bg-zinc-100 dark:bg-zinc-900 rounded-3xl"></div>
+        <div className="flex-grow space-y-6">
+          <div className="h-12 bg-zinc-100 dark:bg-zinc-900 w-3/4 rounded-xl"></div>
+          <div className="h-4 bg-zinc-100 dark:bg-zinc-900 w-1/2 rounded-lg"></div>
+          <div className="h-32 bg-zinc-100 dark:bg-zinc-900 w-full rounded-2xl"></div>
+        </div>
+      </div>
     </div>
   );
 
-  if (!story) return <div className="text-center py-20">Story not found.</div>;
+  if (!story) return <div className="text-center py-32 text-zinc-500">Story vanished into thin air.</div>;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
-      <div className="flex flex-col md:flex-row gap-10 items-start">
-        <div className="w-full md:w-1/3 flex-shrink-0">
-          <img 
-            src={story.cover_url || `https://picsum.photos/seed/${story.id}/600/900`} 
-            alt={story.title} 
-            className="w-full rounded-2xl shadow-2xl border border-zinc-800"
-          />
+    <div className="max-w-6xl mx-auto px-6 py-16">
+      <div className="flex flex-col md:flex-row gap-16 items-start">
+        {/* Cover Art Section */}
+        <div className="w-full md:w-1/3 flex-shrink-0 sticky top-24">
+          <div className="relative group">
+            <img 
+              src={story.cover_url || `https://picsum.photos/seed/${story.id}/800/1200`} 
+              alt={story.title} 
+              className="w-full rounded-[2.5rem] shadow-2xl border border-zinc-200 dark:border-zinc-800 transition-transform duration-500 group-hover:scale-[1.02]"
+            />
+            <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-amber-500/10 blur-3xl -z-10 rounded-full"></div>
+          </div>
+          
+          <div className="mt-12 p-8 bg-zinc-50 dark:bg-zinc-900/50 rounded-[2rem] border border-zinc-200 dark:border-zinc-800">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-amber-500 mb-4">The Architect</h3>
+            <p className="text-zinc-700 dark:text-zinc-300 font-medium leading-relaxed italic">
+              "{story.author_bio || "A mysterious soul who lets their words do the talking."}"
+            </p>
+          </div>
         </div>
         
+        {/* Story Information Section */}
         <div className="flex-grow">
-          <div className="mb-6">
-            <span className="text-amber-500 font-bold uppercase tracking-widest text-sm mb-2 block">{story.genre}</span>
-            <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">{story.title}</h1>
-          </div>
+          <header className="mb-12">
+            <span className="inline-block px-4 py-1.5 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-widest mb-6">
+              {story.genre}
+            </span>
+            <h1 className="text-5xl md:text-7xl font-black mb-8 leading-[1.05] tracking-tighter">
+              {story.title}
+            </h1>
+            
+            <div className="prose prose-zinc dark:prose-invert max-w-none">
+              <p className="text-xl text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
+                {story.synopsis}
+              </p>
+            </div>
+          </header>
 
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-3 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-              </svg>
-              Synopsis
-            </h2>
-            <p className="text-gray-700 dark:text-zinc-300 leading-relaxed text-lg whitespace-pre-wrap">
-              {story.synopsis}
-            </p>
-          </div>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-4 mb-8">
+              <h2 className="text-2xl font-bold">Manuscript Index</h2>
+              <span className="text-sm font-bold text-zinc-500">{chapters.length} Installments</span>
+            </div>
 
-          <div className="p-6 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 mb-10">
-            <h2 className="text-xl font-bold mb-3 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              About Author
-            </h2>
-            <p className="text-gray-600 dark:text-zinc-400 italic">
-              {story.author_bio || "The author hasn't provided a biography yet."}
-            </p>
-          </div>
-
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6 flex items-center justify-between">
-              <span>Chapter List</span>
-              <span className="text-sm font-normal text-zinc-500">{chapters.length} chapters total</span>
-            </h2>
-            <div className="space-y-3">
+            <div className="grid gap-3">
               {chapters.map((chapter, idx) => (
                 <Link 
                   key={chapter.id} 
                   to={`/read/${chapter.id}`}
-                  className="group flex items-center p-4 bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 hover:border-amber-500 transition-all shadow-sm"
+                  className="group flex items-center p-6 bg-white dark:bg-zinc-900/30 rounded-[1.5rem] border border-zinc-100 dark:border-zinc-800 hover:border-amber-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all shadow-sm"
                 >
-                  <span className="w-8 text-amber-500 font-bold">{idx + 1}.</span>
-                  <span className="flex-grow font-medium group-hover:text-amber-500 transition-colors">{chapter.title}</span>
-                  <svg className="w-5 h-5 text-zinc-400 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <span className="w-10 text-amber-500 font-black text-lg opacity-40 group-hover:opacity-100 transition-opacity">
+                    {(idx + 1).toString().padStart(2, '0')}
+                  </span>
+                  <div className="flex-grow">
+                    <span className="block font-bold text-lg group-hover:text-amber-500 transition-colors">
+                      {chapter.title}
+                    </span>
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                      Recorded on {new Date(chapter.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </div>
                 </Link>
               ))}
+              
               {chapters.length === 0 && (
-                <div className="text-center p-10 border-2 border-dashed border-zinc-800 rounded-2xl text-zinc-500">
-                  No chapters published yet. Stay tuned!
+                <div className="text-center p-16 border-2 border-dashed border-zinc-800 rounded-[2.5rem] text-zinc-600 font-medium">
+                  The pages of this story are yet to be written.
                 </div>
               )}
             </div>
