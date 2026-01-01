@@ -11,6 +11,7 @@ const getLocalStories = (): Story[] => {
     const s = localStorage.getItem(LOCAL_STORIES_KEY);
     return s ? JSON.parse(s) : [];
   } catch (e) {
+    console.error("Failed to parse local stories", e);
     return [];
   }
 };
@@ -57,8 +58,8 @@ export const StorageService = {
         status: s.status,
         createdAt: s.created_at ? new Date(s.created_at).getTime() : Date.now(),
       }));
-    } catch (error) {
-      console.warn('Supabase error (falling back to local storage):', error);
+    } catch (error: any) {
+      console.warn('Supabase error (falling back to local storage):', error.message || error);
       return getLocalStories().sort((a, b) => b.createdAt - a.createdAt);
     }
   },
@@ -88,8 +89,8 @@ export const StorageService = {
         status: data.status,
         createdAt: data.created_at ? new Date(data.created_at).getTime() : Date.now(),
       };
-    } catch (error) {
-      console.warn('Supabase error fetching story:', error);
+    } catch (error: any) {
+      console.warn('Supabase error fetching story:', error.message || error);
       return getLocalStories().find(s => s.id === id);
     }
   },
@@ -178,8 +179,8 @@ export const StorageService = {
         order: c.order_index,
         publishedAt: c.published_at ? new Date(c.published_at).getTime() : Date.now(),
       }));
-    } catch (error) {
-      console.warn('Supabase error fetching chapters:', error);
+    } catch (error: any) {
+      console.warn('Supabase error fetching chapters:', error.message || error);
       return getLocalChapters()
         .filter(c => c.storyId === storyId)
         .sort((a, b) => a.order - b.order);
@@ -208,8 +209,8 @@ export const StorageService = {
         order: data.order_index,
         publishedAt: data.published_at ? new Date(data.published_at).getTime() : Date.now(),
       };
-    } catch (error) {
-      console.warn('Supabase error fetching single chapter:', error);
+    } catch (error: any) {
+      console.warn('Supabase error fetching single chapter:', error.message || error);
       return getLocalChapters().find(c => c.id === id);
     }
   },
