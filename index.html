@@ -16,12 +16,17 @@
       // Global Error Handler to debug White Screen issues
       window.addEventListener('error', function(event) {
         const root = document.getElementById('root');
+        console.error("Global Error:", event.error);
         if (root && root.innerHTML === '') {
           const errorDiv = document.createElement('div');
           errorDiv.style.padding = '20px';
-          errorDiv.style.color = 'red';
+          errorDiv.style.color = '#dc2626';
+          errorDiv.style.backgroundColor = '#fef2f2';
           errorDiv.style.fontFamily = 'monospace';
-          errorDiv.innerHTML = '<h3>Application Error</h3><p>' + event.message + '</p>';
+          errorDiv.style.margin = '20px';
+          errorDiv.style.borderRadius = '8px';
+          errorDiv.style.border = '1px solid #fecaca';
+          errorDiv.innerHTML = '<h3 style="font-weight:bold; margin-bottom:8px">Application Error</h3><p>' + event.message + '</p><p style="font-size:12px; margin-top:8px; color:#991b1b">Check console for details.</p>';
           document.body.prepend(errorDiv);
         }
       });
@@ -78,5 +83,6 @@
 </head>
   <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300">
     <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>
