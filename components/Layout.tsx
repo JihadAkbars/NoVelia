@@ -223,7 +223,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                A personal sanctuary for stories, imagination, and worlds waiting to be discovered.
             </p>
             <div className="mt-8 text-gray-400 text-xs">
-              &copy; {new Date().getFullYear()} NoVelia. All rights reserved.
+              &copy; {new Date().getFullYear()} NoVelia (Jihad). All rights reserved.
             </div>
           </div>
         </footer>
