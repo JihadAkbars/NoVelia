@@ -8,9 +8,14 @@ import { ThemeProvider } from './contexts/ThemeContext';
 console.log("[NoVelia] Initializing...");
 console.log("[NoVelia] React Version:", React.version);
 
-const rootElement = document.getElementById('root');
+const mountApp = () => {
+  const rootElement = document.getElementById('root');
 
-if (rootElement) {
+  if (!rootElement) {
+    console.error("[NoVelia] Error: Root element '#root' not found.");
+    return;
+  }
+
   try {
     const root = ReactDOM.createRoot(rootElement);
     root.render(
@@ -22,14 +27,24 @@ if (rootElement) {
         </ThemeProvider>
       </React.StrictMode>
     );
-    console.log("[NoVelia] App mounted.");
+    console.log("[NoVelia] App mounted successfully.");
   } catch (err: any) {
-    console.error("[NoVelia] Mount Error:", err);
-    rootElement.innerHTML = `<div style="padding: 2rem; color: #b91c1c; font-family: sans-serif;">
-      <h1 style="font-size: 1.25rem; font-weight: bold;">Failed to Load App</h1>
-      <p style="margin-top: 0.5rem;">${err.message || 'Check console for details.'}</p>
-    </div>`;
+    console.error("[NoVelia] Mounting failed:", err);
+    
+    // Fallback UI if React fails to even start rendering
+    rootElement.innerHTML = `
+      <div style="padding: 40px; font-family: sans-serif; text-align: center; background: #fff5f5; color: #c53030; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
+        <h2 style="font-weight: bold; font-size: 20px;">Startup Error</h2>
+        <p style="margin-top: 10px;">${err.message || 'Check browser console for details.'}</p>
+        <button onclick="location.reload(true)" style="margin-top: 20px; padding: 10px 20px; background: #c53030; color: white; border: none; border-radius: 5px; cursor: pointer;">Retry</button>
+      </div>
+    `;
   }
+};
+
+// Ensure DOM is ready before mounting
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', mountApp);
 } else {
-  console.error("[NoVelia] Error: Root element '#root' not found.");
+  mountApp();
 }
