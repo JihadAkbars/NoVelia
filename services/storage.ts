@@ -1,137 +1,261 @@
 import { Story, Chapter } from '../types';
+import { supabase } from './supabaseClient';
 
-const STORIES_KEY = 'novelia_stories';
-const CHAPTERS_KEY = 'novelia_chapters';
 const AUTH_KEY = 'novelia_admin_auth';
+const LOCAL_STORIES_KEY = 'novelia_stories';
+const LOCAL_CHAPTERS_KEY = 'novelia_chapters';
 
-// Seed data to avoid empty state
-const seedData = () => {
-  if (!localStorage.getItem(STORIES_KEY)) {
-    const stories: Story[] = [
-      {
-        id: '1',
-        title: 'The Clockwork Alchemist',
-        author: 'Julian Vane',
-        authorBio: 'Julian Vane is a connoisseur of steam, gears, and tea. Living in a renovated lighthouse, he writes stories that blend history with the impossible.',
-        synopsis: 'In a city powered by steam and gears, a young apprentice discovers a forbidden formula that could rewrite the laws of physics, or destroy reality itself.',
-        coverUrl: 'https://picsum.photos/300/450?random=1',
-        genre: 'Sci-Fi',
-        status: 'Ongoing',
-        createdAt: Date.now(),
-      },
-      {
-        id: '2',
-        title: 'Whispers of the Old Forest',
-        author: 'Elara Moon',
-        authorBio: 'Elara Moon grew up on the edge of a dense forest, which inspired her love for folklore and dark fantasy. She currently resides in the Pacific Northwest with her two cats.',
-        synopsis: 'The village elders warned them never to cross the river. But when the crops fail and sickness spreads, Elara has no choice but to seek the Witch of the Woods.',
-        coverUrl: 'https://picsum.photos/300/450?random=2',
-        genre: 'Fantasy',
-        status: 'Completed',
-        createdAt: Date.now() - 10000000,
-      }
-    ];
-    localStorage.setItem(STORIES_KEY, JSON.stringify(stories));
-  }
-
-  if (!localStorage.getItem(CHAPTERS_KEY)) {
-    const chapters: Chapter[] = [
-      {
-        id: 'c1',
-        storyId: '1',
-        title: 'Chapter 1: The Brass Key',
-        content: '<p>The gears turned with a rhythmic thrum that vibrated through the floorboards of the workshop. Elian wiped the grease from his forehead, his eyes fixed on the small, intricate mechanism before him.</p><p>"It works," he whispered, hardly daring to believe it.</p><p>The brass key hummed with a faint blue light, a color that shouldn\'t exist in their world of copper and steam.</p>',
-        order: 1,
-        publishedAt: Date.now(),
-      },
-      {
-        id: 'c2',
-        storyId: '1',
-        title: 'Chapter 2: Pursuit',
-        content: '<p>They came at night. Not the city guard, but the cloaked figures of the Guild.</p><p>Elian grabbed his satchel, stuffing the key inside just as the door burst open.</p>',
-        order: 2,
-        publishedAt: Date.now(),
-      }
-    ];
-    localStorage.setItem(CHAPTERS_KEY, JSON.stringify(chapters));
+// --- Local Storage Helpers (Fallback) ---
+const getLocalStories = (): Story[] => {
+  try {
+    const s = localStorage.getItem(LOCAL_STORIES_KEY);
+    return s ? JSON.parse(s) : [];
+  } catch (e) {
+    return [];
   }
 };
 
-seedData();
+const saveLocalStories = (stories: Story[]) => {
+  localStorage.setItem(LOCAL_STORIES_KEY, JSON.stringify(stories));
+};
+
+const getLocalChapters = (): Chapter[] => {
+  try {
+    const c = localStorage.getItem(LOCAL_CHAPTERS_KEY);
+    return c ? JSON.parse(c) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+const saveLocalChapters = (chapters: Chapter[]) => {
+  localStorage.setItem(LOCAL_CHAPTERS_KEY, JSON.stringify(chapters));
+};
 
 export const StorageService = {
-  getStories: (): Story[] => {
-    const data = localStorage.getItem(STORIES_KEY);
-    return data ? JSON.parse(data) : [];
-  },
+  // Fetch all stories
+  getStories: async (): Promise<Story[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      if (!data) return [];
 
-  getStory: (id: string): Story | undefined => {
-    const stories = StorageService.getStories();
-    return stories.find((s) => s.id === id);
-  },
-
-  saveStory: (story: Story): void => {
-    const stories = StorageService.getStories();
-    const index = stories.findIndex((s) => s.id === story.id);
-    if (index >= 0) {
-      stories[index] = story;
-    } else {
-      stories.push(story);
+      return data.map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        author: s.author,
+        authorBio: s.author_bio,
+        synopsis: s.synopsis,
+        coverUrl: s.cover_url,
+        genre: s.genre,
+        status: s.status,
+        createdAt: s.created_at ? new Date(s.created_at).getTime() : Date.now(),
+      }));
+    } catch (error) {
+      console.warn('Supabase error (falling back to local storage):', error);
+      return getLocalStories().sort((a, b) => b.createdAt - a.createdAt);
     }
-    localStorage.setItem(STORIES_KEY, JSON.stringify(stories));
   },
 
-  deleteStory: (id: string): void => {
-    let stories = StorageService.getStories();
-    stories = stories.filter((s) => s.id !== id);
-    localStorage.setItem(STORIES_KEY, JSON.stringify(stories));
+  // Fetch a single story
+  getStory: async (id: string): Promise<Story | undefined> => {
+    try {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      if (!data) return undefined;
+
+      return {
+        id: data.id,
+        title: data.title,
+        author: data.author,
+        authorBio: data.author_bio,
+        synopsis: data.synopsis,
+        coverUrl: data.cover_url,
+        genre: data.genre,
+        status: data.status,
+        createdAt: data.created_at ? new Date(data.created_at).getTime() : Date.now(),
+      };
+    } catch (error) {
+      console.warn('Supabase error fetching story:', error);
+      return getLocalStories().find(s => s.id === id);
+    }
+  },
+
+  // Save (Create or Update) a story
+  saveStory: async (story: Story): Promise<void> => {
+    // 1. Save to Local Storage (Always works as backup)
+    const localStories = getLocalStories();
+    const index = localStories.findIndex(s => s.id === story.id);
+    if (index >= 0) {
+      localStories[index] = story;
+    } else {
+      localStories.push(story);
+    }
+    saveLocalStories(localStories);
+
+    // 2. Try Supabase
+    try {
+      const dbStory = {
+        id: story.id,
+        title: story.title,
+        author: story.author,
+        author_bio: story.authorBio,
+        synopsis: story.synopsis,
+        cover_url: story.coverUrl,
+        genre: story.genre,
+        status: story.status,
+        created_at: new Date(story.createdAt).toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('stories')
+        .upsert(dbStory);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving story to Supabase:', error);
+    }
+  },
+
+  // Delete a story
+  deleteStory: async (id: string): Promise<void> => {
+    // 1. Delete from Local Storage
+    const localStories = getLocalStories().filter(s => s.id !== id);
+    saveLocalStories(localStories);
     
-    // Cascade delete chapters
-    let chapters = StorageService.getAllChapters();
-    chapters = chapters.filter(c => c.storyId !== id);
-    localStorage.setItem(CHAPTERS_KEY, JSON.stringify(chapters));
-  },
+    // Also delete associated chapters locally
+    const localChapters = getLocalChapters().filter(c => c.storyId !== id);
+    saveLocalChapters(localChapters);
 
-  getAllChapters: (): Chapter[] => {
-    const data = localStorage.getItem(CHAPTERS_KEY);
-    return data ? JSON.parse(data) : [];
-  },
-
-  getChaptersByStory: (storyId: string): Chapter[] => {
-    const chapters = StorageService.getAllChapters();
-    return chapters
-      .filter((c) => c.storyId === storyId)
-      .sort((a, b) => a.order - b.order);
-  },
-
-  getChapter: (id: string): Chapter | undefined => {
-    const chapters = StorageService.getAllChapters();
-    return chapters.find((c) => c.id === id);
-  },
-
-  saveChapter: (chapter: Chapter): void => {
-    const chapters = StorageService.getAllChapters();
-    const index = chapters.findIndex((c) => c.id === chapter.id);
-    if (index >= 0) {
-      chapters[index] = chapter;
-    } else {
-      chapters.push(chapter);
+    // 2. Try Supabase
+    try {
+      const { error } = await supabase.from('stories').delete().eq('id', id);
+      if (error) throw error;
+      
+      // Cascade delete is usually handled by DB, but we can explicit delete chapters if needed
+      await supabase.from('chapters').delete().eq('story_id', id);
+    } catch (error) {
+      console.error('Error deleting story from Supabase:', error);
     }
-    localStorage.setItem(CHAPTERS_KEY, JSON.stringify(chapters));
   },
 
-  deleteChapter: (id: string): void => {
-    let chapters = StorageService.getAllChapters();
-    chapters = chapters.filter((c) => c.id !== id);
-    localStorage.setItem(CHAPTERS_KEY, JSON.stringify(chapters));
+  // Fetch chapters for a story
+  getChaptersByStory: async (storyId: string): Promise<Chapter[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('chapters')
+        .select('*')
+        .eq('story_id', storyId)
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      if (!data) return [];
+
+      return data.map((c: any) => ({
+        id: c.id,
+        storyId: c.story_id,
+        title: c.title,
+        content: c.content,
+        order: c.order_index,
+        publishedAt: c.published_at ? new Date(c.published_at).getTime() : Date.now(),
+      }));
+    } catch (error) {
+      console.warn('Supabase error fetching chapters:', error);
+      return getLocalChapters()
+        .filter(c => c.storyId === storyId)
+        .sort((a, b) => a.order - b.order);
+    }
   },
 
+  // Fetch a single chapter
+  getChapter: async (id: string): Promise<Chapter | undefined> => {
+    try {
+      const { data, error } = await supabase
+        .from('chapters')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      if (!data) return undefined;
+
+      return {
+        id: data.id,
+        storyId: data.story_id,
+        title: data.title,
+        content: data.content,
+        order: data.order_index,
+        publishedAt: data.published_at ? new Date(data.published_at).getTime() : Date.now(),
+      };
+    } catch (error) {
+      console.warn('Supabase error fetching single chapter:', error);
+      return getLocalChapters().find(c => c.id === id);
+    }
+  },
+
+  // Save (Create or Update) a chapter
+  saveChapter: async (chapter: Chapter): Promise<void> => {
+    // 1. Save to Local Storage
+    const localChapters = getLocalChapters();
+    const index = localChapters.findIndex(c => c.id === chapter.id);
+    if (index >= 0) {
+      localChapters[index] = chapter;
+    } else {
+      localChapters.push(chapter);
+    }
+    saveLocalChapters(localChapters);
+
+    // 2. Try Supabase
+    try {
+      const dbChapter = {
+        id: chapter.id,
+        story_id: chapter.storyId,
+        title: chapter.title,
+        content: chapter.content,
+        order_index: chapter.order,
+        published_at: new Date(chapter.publishedAt).toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('chapters')
+        .upsert(dbChapter);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving chapter to Supabase:', error);
+    }
+  },
+
+  // Delete a chapter
+  deleteChapter: async (id: string): Promise<void> => {
+    // 1. Delete from Local Storage
+    const localChapters = getLocalChapters().filter(c => c.id !== id);
+    saveLocalChapters(localChapters);
+
+    // 2. Try Supabase
+    try {
+      const { error } = await supabase.from('chapters').delete().eq('id', id);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting chapter from Supabase:', error);
+    }
+  },
+
+  // Auth Methods (Kept simple for now)
   isAuthenticated: (): boolean => {
     return localStorage.getItem(AUTH_KEY) === 'true';
   },
 
   login: (password: string): boolean => {
-    // Authentication with specific passkey
     if (password === '040507') {
       localStorage.setItem(AUTH_KEY, 'true');
       return true;
