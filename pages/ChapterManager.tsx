@@ -15,16 +15,20 @@ export const ChapterManager: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentChapter, setCurrentChapter] = useState<Partial<Chapter>>({});
   const [aiLoading, setAiLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!StorageService.isAuthenticated()) {
         navigate('/admin/login');
         return;
     }
-    if (storyId) {
-        setStory(StorageService.getStory(storyId) || null);
-        setChapters(StorageService.getChaptersByStory(storyId));
-    }
+    const fetch = async () => {
+      if (storyId) {
+          setStory(await StorageService.getStory(storyId) || null);
+          setChapters(await StorageService.getChaptersByStory(storyId));
+      }
+    };
+    fetch();
   }, [storyId, navigate]);
 
   const handleEdit = (chapter?: Chapter) => {
@@ -41,19 +45,20 @@ export const ChapterManager: React.FC = () => {
     setIsEditing(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Delete this chapter?")) {
-        StorageService.deleteChapter(id);
-        if (storyId) setChapters(StorageService.getChaptersByStory(storyId));
+        await StorageService.deleteChapter(id);
+        if (storyId) setChapters(await StorageService.getChaptersByStory(storyId));
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentChapter.title || !currentChapter.content || !storyId) return;
+    setLoading(true);
 
     const chapterToSave: Chapter = {
-        id: currentChapter.id || `c${Date.now()}`,
+        id: currentChapter.id || crypto.randomUUID(),
         storyId: storyId,
         title: currentChapter.title,
         content: currentChapter.content,
@@ -61,9 +66,10 @@ export const ChapterManager: React.FC = () => {
         publishedAt: (currentChapter as Chapter).publishedAt || Date.now()
     };
 
-    StorageService.saveChapter(chapterToSave);
-    setChapters(StorageService.getChaptersByStory(storyId));
+    await StorageService.saveChapter(chapterToSave);
+    setChapters(await StorageService.getChaptersByStory(storyId));
     setIsEditing(false);
+    setLoading(false);
   };
 
   const improveContent = async () => {
@@ -128,8 +134,8 @@ export const ChapterManager: React.FC = () => {
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Use HTML tags like &lt;p&gt; for paragraphs.</p>
                       </div>
                       <div className="flex justify-end pt-4">
-                          <button type="submit" className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-                              <Save size={18} /> Save Chapter
+                          <button type="submit" disabled={loading} className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                              <Save size={18} /> {loading ? 'Saving...' : 'Save Chapter'}
                           </button>
                       </div>
                   </form>
