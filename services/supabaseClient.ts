@@ -14,17 +14,22 @@ const getEnv = (key: string) => {
 };
 
 // --- CONFIGURATION ---
-const SUPABASE_URL = getEnv('REACT_APP_SUPABASE_URL') || 'https://cukaoncgoafbepvsnngi.supabase.co'; 
-const SUPABASE_KEY = getEnv('REACT_APP_SUPABASE_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1a2FvbmNnb2FmYmVwdnNubmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyMTk1MzIsImV4cCI6MjA4Mjc5NTUzMn0.-wOmTFO7e-Q93XEYLrgDtNoGqWMOrXMS8ahsbU_zAaQ';
+// Using the keys provided by the user
+const rawUrl = getEnv('REACT_APP_SUPABASE_URL') || 'https://cukaoncgoafbepvsnngi.supabase.co';
+const rawKey = getEnv('REACT_APP_SUPABASE_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1a2FvbmNnb2FmYmVwdnNubmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyMTk1MzIsImV4cCI6MjA4Mjc5NTUzMn0.-wOmTFO7e-Q93XEYLrgDtNoGqWMOrXMS8ahsbU_zAaQ';
+
+// Clean keys to ensure no whitespace issues
+const SUPABASE_URL = rawUrl.trim();
+const SUPABASE_KEY = rawKey.trim();
 
 let supabaseClient = null;
 
 try {
-  // Check if URL is still the default placeholder
-  const isPlaceholderUrl = !SUPABASE_URL || SUPABASE_URL.includes('YOUR_SUPABASE_PROJECT_URL');
+  // Check if URL is valid
+  const isValidUrl = SUPABASE_URL && SUPABASE_URL.startsWith('http') && !SUPABASE_URL.includes('YOUR_SUPABASE');
 
-  if (isPlaceholderUrl) {
-    console.warn('⚠️ Supabase URL not set. App running in Offline/Local Storage mode.');
+  if (!isValidUrl) {
+    console.warn('⚠️ Supabase URL is invalid. App running in Offline/Local Storage mode.');
     supabaseClient = null;
   } else {
     supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -33,6 +38,7 @@ try {
         autoRefreshToken: true,
       }
     });
+    console.log("Supabase client initialized successfully");
   }
 } catch (error) {
   console.warn("Failed to initialize Supabase client (using offline mode):", error);
