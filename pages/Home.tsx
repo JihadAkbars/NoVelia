@@ -15,23 +15,31 @@ export const Home: React.FC = () => {
 
   const fetchStories = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('stories')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (data) setStories(data);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      if (data) setStories(data);
+    } catch (err) {
+      console.error("Home fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredStories = stories.filter(s => {
-    const matchesSearch = s.title.toLowerCase().includes(search.toLowerCase()) || 
-                         s.genre.toLowerCase().includes(search.toLowerCase());
-    const matchesGenre = genreFilter === 'All' || s.genre === genreFilter;
+    const title = s.title || '';
+    const genre = s.genre || '';
+    const matchesSearch = title.toLowerCase().includes(search.toLowerCase()) || 
+                         genre.toLowerCase().includes(search.toLowerCase());
+    const matchesGenre = genreFilter === 'All' || genre === genreFilter;
     return matchesSearch && matchesGenre;
   });
 
-  const genres = ['All', ...Array.from(new Set(stories.map(s => s.genre)))];
+  const genres = ['All', ...Array.from(new Set(stories.map(s => s.genre || 'Uncategorized')))];
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -89,11 +97,12 @@ export const Home: React.FC = () => {
                     src={story.cover_url || `https://picsum.photos/seed/${story.id}/600/900`}
                     alt={story.title}
                     className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x900?text=No+Cover'; }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <div className="absolute top-4 left-4">
                     <span className="px-3 py-1 bg-zinc-950/40 backdrop-blur-md border border-white/10 text-white rounded-full text-[10px] font-bold uppercase tracking-widest">
-                      {story.genre}
+                      {story.genre || 'Story'}
                     </span>
                   </div>
                 </div>
