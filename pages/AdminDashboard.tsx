@@ -2,24 +2,32 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { StorageService } from '../services/storage';
 import { Story } from '../types';
-import { Plus, Edit2, Trash2, Eye, BookOpen } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, BookOpen, Loader2 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const [stories, setStories] = useState<Story[]>([]);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!StorageService.isAuthenticated()) {
       navigate('/admin/login');
       return;
     }
-    setStories(StorageService.getStories());
+    const fetch = async () => {
+      setLoading(true);
+      const s = await StorageService.getStories();
+      setStories(s);
+      setLoading(false);
+    };
+    fetch();
   }, [navigate]);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
-      StorageService.deleteStory(id);
-      setStories(StorageService.getStories());
+      await StorageService.deleteStory(id);
+      const s = await StorageService.getStories();
+      setStories(s);
     }
   };
 
@@ -40,6 +48,9 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden transition-colors duration-300">
+        {loading ? (
+             <div className="p-12 text-center text-gray-500"><Loader2 className="animate-spin inline mr-2"/> Loading data...</div>
+        ) : (
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
           <thead className="bg-gray-50 dark:bg-gray-800/50">
             <tr>
@@ -98,6 +109,7 @@ export const AdminDashboard: React.FC = () => {
             )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );
