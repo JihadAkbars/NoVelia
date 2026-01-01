@@ -1,8 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 
 const getClient = () => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) return null;
+  // Use environment variable or fallback to the provided key
+  const apiKey = process.env.API_KEY || "vck_83sJ1goV8b41pN4plX77DdJZuedc4z1OWhL3gWDDeiFMfRMtsn4Kh3pI";
+  
+  if (!apiKey) {
+    console.error("Gemini API Key is missing.");
+    return null;
+  }
+  
   return new GoogleGenAI({ apiKey });
 };
 
@@ -58,7 +64,10 @@ export const GeminiService = {
 
   translate: async (text: string, targetLanguage: string, isHtml: boolean = false): Promise<string> => {
     const client = getClient();
-    if (!client) return text;
+    if (!client) {
+      console.warn("Translation skipped: No API Key available.");
+      return text;
+    }
     if (!text) return "";
 
     try {
