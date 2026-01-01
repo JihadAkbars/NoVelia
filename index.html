@@ -9,7 +9,8 @@
       // POLYFILL: Define process safely
       window.process = window.process || {
         env: {
-          NODE_ENV: 'production'
+          NODE_ENV: 'production',
+          API_KEY: '' // Placeholder for injection
         }
       };
       
@@ -38,22 +39,17 @@
 
       window.addEventListener('error', function(event) {
         console.error("Global Error:", event.error);
-        showError(event.message || "Unknown Error");
+        if (event.message && event.message.includes('Error #31')) {
+          showError("React Version Mismatch detected. Please refresh the page.");
+        } else {
+          showError(event.message || "Unknown Error");
+        }
       });
 
       window.addEventListener('unhandledrejection', function(event) {
         console.error("Unhandled Rejection:", event.reason);
         showError(event.reason ? event.reason.message || event.reason : "Unknown Async Error");
       });
-
-      // Startup Watchdog
-      setTimeout(() => {
-        const root = document.getElementById('root');
-        if (root && (root.innerText.includes('Loading NoVelia') || root.innerHTML === '')) {
-           console.warn("App startup timed out.");
-           showError("The application took too long to start. This is usually caused by network issues or a script error.");
-        }
-      }, 8000);
 
       tailwind.config = {
         darkMode: 'class',
