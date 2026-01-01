@@ -16,17 +16,26 @@ export const StoryDetail: React.FC = () => {
   const [displayStory, setDisplayStory] = useState<Story | null>(null);
   const [displayChapters, setDisplayChapters] = useState<Chapter[]>([]);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      const s = StorageService.getStory(id);
-      if (s) {
-        setOriginalStory(s);
-        setOriginalChapters(StorageService.getChaptersByStory(id));
-      } else {
-        navigate('/');
-      }
-    }
+    const fetchData = async () => {
+        if (!id) {
+            navigate('/');
+            return;
+        }
+        setLoading(true);
+        const s = await StorageService.getStory(id);
+        if (s) {
+            setOriginalStory(s);
+            const chapters = await StorageService.getChaptersByStory(id);
+            setOriginalChapters(chapters);
+        } else {
+            navigate('/');
+        }
+        setLoading(false);
+    };
+    fetchData();
   }, [id, navigate]);
 
   useEffect(() => {
@@ -73,7 +82,7 @@ export const StoryDetail: React.FC = () => {
 
   }, [originalStory, originalChapters, language]);
 
-  if (!displayStory) return (
+  if (loading || !displayStory) return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950 text-gray-500 dark:text-gray-400">
       <div className="flex flex-col items-center gap-2">
         <Loader2 className="animate-spin" />
