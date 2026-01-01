@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
@@ -122,7 +121,11 @@ export const AdminStoryEdit: React.FC = () => {
 
   const handleAiImprove = async (index: number) => {
     const content = chapters[index].content;
-    if (!content) return;
+    if (!content || content.trim().length < 5) {
+      alert("Please write at least a few words before using the AI editor.");
+      return;
+    }
+    
     setIsAiProcessing(true);
     try {
       const improved = await improveGrammar(content);
@@ -149,14 +152,14 @@ export const AdminStoryEdit: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <input 
               placeholder="Story Title"
-              className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none focus:ring-2 focus:ring-amber-500 transition-all"
               value={story.title}
               onChange={(e) => setStory({ ...story, title: e.target.value })}
               required
             />
             <input 
               placeholder="Genre (e.g. Fantasy)"
-              className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none focus:ring-2 focus:ring-amber-500 transition-all"
               value={story.genre}
               onChange={(e) => setStory({ ...story, genre: e.target.value })}
               required
@@ -165,7 +168,7 @@ export const AdminStoryEdit: React.FC = () => {
           <textarea 
             placeholder="Short Synopsis"
             rows={4}
-            className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none"
+            className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none transition-all"
             value={story.synopsis}
             onChange={(e) => setStory({ ...story, synopsis: e.target.value })}
             required
@@ -173,13 +176,13 @@ export const AdminStoryEdit: React.FC = () => {
           <textarea 
             placeholder="Author Bio"
             rows={2}
-            className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none"
+            className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none transition-all"
             value={story.author_bio}
             onChange={(e) => setStory({ ...story, author_bio: e.target.value })}
           />
           <input 
             placeholder="Cover URL (Image Link)"
-            className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none"
+            className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none transition-all"
             value={story.cover_url}
             onChange={(e) => setStory({ ...story, cover_url: e.target.value })}
           />
@@ -188,7 +191,7 @@ export const AdminStoryEdit: React.FC = () => {
         <section className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold">Chapters</h2>
-            <button type="button" onClick={addChapter} className="text-amber-500 font-bold hover:underline">+ Add Chapter</button>
+            <button type="button" onClick={addChapter} className="text-amber-500 font-bold hover:underline transition-all">+ Add Chapter</button>
           </div>
 
           <div className="space-y-6">
@@ -203,7 +206,7 @@ export const AdminStoryEdit: React.FC = () => {
                 <div className="space-y-4">
                   <input 
                     placeholder="Chapter Title"
-                    className="w-full px-4 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none"
+                    className="w-full px-4 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none transition-all"
                     value={ch.title}
                     onChange={(e) => updateChapter(idx, 'title' as any, e.target.value)}
                   />
@@ -211,7 +214,7 @@ export const AdminStoryEdit: React.FC = () => {
                     <textarea 
                       rows={8}
                       placeholder="Chapter content..."
-                      className="w-full px-4 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none font-serif"
+                      className="w-full px-4 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 outline-none font-serif text-lg leading-relaxed transition-all"
                       value={ch.content}
                       onChange={(e) => updateChapter(idx, 'content' as any, e.target.value)}
                     />
@@ -219,10 +222,16 @@ export const AdminStoryEdit: React.FC = () => {
                       type="button"
                       disabled={isAiProcessing}
                       onClick={() => handleAiImprove(idx)}
-                      className="absolute bottom-4 right-4 bg-amber-500 text-white p-2 rounded-full hover:scale-105 transition-transform disabled:opacity-50"
+                      className="absolute bottom-4 right-4 bg-amber-500 text-white p-2 rounded-full hover:scale-105 active:scale-95 transition-all disabled:opacity-50 shadow-md"
                       title="AI Grammar Fix"
                     >
-                      {isAiProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+                      {isAiProcessing ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -233,11 +242,11 @@ export const AdminStoryEdit: React.FC = () => {
 
         <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/90 dark:bg-zinc-950/90 backdrop-blur border-t border-zinc-200 dark:border-zinc-800 z-50 flex justify-center">
           <div className="max-w-4xl w-full flex justify-end gap-4">
-            <button type="button" onClick={() => navigate('/admin/dashboard')} className="px-6 py-3 font-bold text-zinc-500">Cancel</button>
+            <button type="button" onClick={() => navigate('/admin/dashboard')} className="px-6 py-3 font-bold text-zinc-500 hover:text-zinc-700 transition-colors">Cancel</button>
             <button 
               type="submit" 
               disabled={loading}
-              className="px-10 py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-all flex items-center shadow-lg shadow-amber-500/20"
+              className="px-10 py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-all flex items-center shadow-lg shadow-amber-500/20 disabled:opacity-50"
             >
               {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>}
               {isEdit ? 'Save Changes' : 'Publish to NoVelia'}
