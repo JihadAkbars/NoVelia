@@ -25,8 +25,8 @@
              root.innerHTML = `
                <div style="padding: 40px; text-align: center; font-family: sans-serif; color: #7f1d1d; background: #fef2f2; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                  <h2 style="font-weight: bold; font-size: 24px;">Application Initialization Error</h2>
-                 <p style="margin-top: 10px; max-width: 500px;">A conflict between React versions was detected in your browser cache. This is usually resolved by a hard refresh.</p>
-                 <div style="margin-top: 20px; font-family: monospace; font-size: 12px; background: #fee2e2; padding: 10px; border-radius: 4px; border: 1px solid #fecaca;">
+                 <p style="margin-top: 10px; max-width: 500px;">A conflict between React versions was detected. This typically happens when some libraries load React 19 components into a React 18 application.</p>
+                 <div style="margin-top: 20px; font-family: monospace; font-size: 12px; background: #fee2e2; padding: 10px; border-radius: 4px; border: 1px solid #fecaca; text-align: left; max-width: 90%;">
                    ${event.message}
                  </div>
                  <button onclick="location.reload(true)" style="margin-top: 30px; padding: 12px 24px; background: #b91c1c; color: white; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s;">
@@ -89,15 +89,5 @@
        </div>
     </div>
     <script type="module" src="./index.tsx"></script>
-    <script>
-      // Watchdog: If nothing happens after 10 seconds, show a manual refresh button
-      setTimeout(() => {
-        const root = document.getElementById('root');
-        if (root && root.innerText.includes('Initializing NoVelia')) {
-          const subtext = document.getElementById('loading-subtext');
-          if (subtext) subtext.innerHTML = 'Still loading? <a href="javascript:location.reload(true)" style="color:#4f46e5;text-decoration:underline;">Click here to hard refresh</a>';
-        }
-      }, 10000);
-    </script>
   </body>
 </html>
