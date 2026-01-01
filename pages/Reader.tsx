@@ -31,19 +31,22 @@ export const Reader: React.FC = () => {
   const [currentMatch, setCurrentMatch] = useState(0);
 
   useEffect(() => {
-    if (chapterId) {
-      const c = StorageService.getChapter(chapterId);
-      if (c) {
-        setOriginalChapter(c);
-        const s = StorageService.getStory(c.storyId);
-        if (s) setStory(s);
-        const chapters = StorageService.getChaptersByStory(c.storyId);
-        setAllChapters(chapters);
-        window.scrollTo(0, 0);
-        setSearchQuery('');
-        setShowSearch(false);
+    const fetchData = async () => {
+      if (chapterId) {
+        const c = await StorageService.getChapter(chapterId);
+        if (c) {
+          setOriginalChapter(c);
+          const s = await StorageService.getStory(c.storyId);
+          if (s) setStory(s);
+          const chapters = await StorageService.getChaptersByStory(c.storyId);
+          setAllChapters(chapters);
+          window.scrollTo(0, 0);
+          setSearchQuery('');
+          setShowSearch(false);
+        }
       }
-    }
+    };
+    fetchData();
   }, [chapterId]);
 
   // Handle Translation
@@ -52,6 +55,7 @@ export const Reader: React.FC = () => {
 
     if (language === 'Original') {
       setDisplayChapter(originalChapter);
+      setIsTranslating(false);
       return;
     }
 
@@ -169,7 +173,7 @@ export const Reader: React.FC = () => {
           
           <div className="flex flex-col items-center">
              <div className="text-sm font-semibold truncate px-4">{displayChapter.title}</div>
-             {isTranslating && <div className="text-xs text-indigo-500 flex items-center gap-1 animate-pulse"><Loader2 size={10} className="animate-spin" /> Translating...</div>}
+             {isTranslating && <div className="text-xs text-indigo-500 flex items-center gap-1 animate-pulse"><Loader2 size={10} className="animate-spin" /> Translating to {language}...</div>}
           </div>
           
           <div className="flex items-center gap-1">
@@ -285,14 +289,23 @@ export const Reader: React.FC = () => {
       {/* Reading Content */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         <article className="prose max-w-none">
-            <h1 className={`font-serif text-center font-bold mb-12 ${globalTheme === 'dark' && !sepiaMode ? 'text-gray-100' : 'text-gray-900'}`} style={{ fontSize: `${fontSize * 1.5}px` }}>
-              {displayChapter.title}
-            </h1>
-            <div 
-              className={`font-serif leading-relaxed space-y-6 ${globalTheme === 'dark' && !sepiaMode ? 'prose-invert' : ''}`}
-              style={{ fontSize: `${fontSize}px` }}
-              dangerouslySetInnerHTML={{ __html: processedContent.html }}
-            />
+            {isTranslating ? (
+              <div className="flex flex-col items-center justify-center py-20 opacity-60">
+                <Loader2 size={40} className="animate-spin mb-4 text-indigo-500" />
+                <p>Translating to {language}...</p>
+              </div>
+            ) : (
+            <>
+              <h1 className={`font-serif text-center font-bold mb-12 ${globalTheme === 'dark' && !sepiaMode ? 'text-gray-100' : 'text-gray-900'}`} style={{ fontSize: `${fontSize * 1.5}px` }}>
+                {displayChapter.title}
+              </h1>
+              <div 
+                className={`font-serif leading-relaxed space-y-6 ${globalTheme === 'dark' && !sepiaMode ? 'prose-invert' : ''}`}
+                style={{ fontSize: `${fontSize}px` }}
+                dangerouslySetInnerHTML={{ __html: processedContent.html }}
+              />
+            </>
+            )}
         </article>
       </div>
 
