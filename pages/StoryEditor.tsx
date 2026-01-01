@@ -47,7 +47,7 @@ export const StoryEditor: React.FC = () => {
         setFormData(prev => ({ ...prev, synopsis }));
     } catch (e) {
         console.error(e);
-        alert("Failed to generate synopsis. Check API Key configuration.");
+        alert("Failed to generate synopsis. Check console for details.");
     } finally {
         setAiLoading(false);
     }
@@ -169,17 +169,15 @@ export const StoryEditor: React.FC = () => {
           <div>
              <div className="flex justify-between items-center mb-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Synopsis</label>
-                {process.env.API_KEY && (
-                    <button 
-                        type="button" 
-                        onClick={generateAISynopsis}
-                        disabled={aiLoading}
-                        className="text-xs flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 disabled:opacity-50"
-                    >
-                        <Wand2 size={12} />
-                        {aiLoading ? 'Generating...' : 'AI Generate'}
-                    </button>
-                )}
+                <button 
+                    type="button" 
+                    onClick={generateAISynopsis}
+                    disabled={aiLoading}
+                    className="text-xs flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 disabled:opacity-50"
+                >
+                    <Wand2 size={12} />
+                    {aiLoading ? 'Generating...' : 'AI Generate'}
+                </button>
              </div>
             <textarea
                 name="synopsis"
