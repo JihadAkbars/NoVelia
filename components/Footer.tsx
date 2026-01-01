@@ -1,15 +1,20 @@
-
 import React from 'react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-900 py-8">
-      <div className="max-w-7xl mx-auto px-4 text-center">
-        <p className="text-gray-500 dark:text-zinc-500 text-sm font-medium">
+    <footer className="py-20 border-t border-zinc-200 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+      <div className="max-w-7xl mx-auto px-6 text-center">
+        <div className="flex items-center justify-center mb-8">
+           <div className="w-8 h-8 bg-zinc-200 dark:bg-zinc-800 rounded flex items-center justify-center mr-2">
+             <span className="text-[10px] font-black">NV</span>
+           </div>
+           <span className="font-black text-lg tracking-tighter">NoVelia</span>
+        </div>
+        <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">
           Copyright 2026 NoVelia (Jihad)
         </p>
-        <p className="text-gray-400 dark:text-zinc-600 text-xs mt-2 italic">
-          Crafting worlds, one chapter at a time.
+        <p className="text-zinc-400 dark:text-zinc-600 text-xs mt-3 italic max-w-sm mx-auto leading-relaxed">
+          The quietest place on the web to lose yourself in a story.
         </p>
       </div>
     </footer>
