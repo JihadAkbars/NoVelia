@@ -12,7 +12,7 @@ let supabaseClient = null;
 
 try {
   // Check if URL is still the default placeholder
-  const isPlaceholderUrl = !SUPABASE_URL || SUPABASE_URL.includes('YOUR_SUPABASE_PROJECT_URL');
+  const isPlaceholderUrl = !SUPABASE_URL || SUPABASE_URL.includes('https://cukaoncgoafbepvsnngi.supabase.co');
 
   if (isPlaceholderUrl) {
     console.warn('⚠️ Supabase URL not set. App running in Offline/Local Storage mode.');
