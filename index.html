@@ -16,25 +16,29 @@
       
       // Global Error Handler for better debugging
       window.addEventListener('error', function(event) {
-        console.error("Global Error:", event.error);
+        console.error("Global Error Detected:", event.error || event.message);
         const root = document.getElementById('root');
         
-        // If we see Error #31 or "object with keys", it's a React version mismatch
-        if (event.message && (event.message.includes('Error #31') || event.message.includes('object with keys') || event.message.includes('$$typeof'))) {
-           if (root) {
-             root.innerHTML = `
-               <div style="padding: 40px; text-align: center; font-family: sans-serif; color: #7f1d1d; background: #fef2f2; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                 <h2 style="font-weight: bold; font-size: 24px;">Render Conflict Detected</h2>
-                 <p style="margin-top: 10px; max-width: 500px;">React 18 and 19 components are clashing. We have corrected the configuration. Please click the button below to clear the state and reload.</p>
-                 <div style="margin-top: 20px; font-family: monospace; font-size: 12px; background: #fee2e2; padding: 10px; border-radius: 4px; border: 1px solid #fecaca; text-align: left; max-width: 90%; overflow-x: auto;">
-                   ${event.message}
-                 </div>
-                 <button onclick="location.reload(true)" style="margin-top: 30px; padding: 12px 24px; background: #b91c1c; color: white; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s;">
-                   Hard Refresh & Fix
-                 </button>
-               </div>
-             `;
-           }
+        // If we see Error #31 or "object with keys", it's definitely a React version mismatch
+        const isReactError = event.message && (
+          event.message.includes('Error #31') || 
+          event.message.includes('object with keys') || 
+          event.message.includes('$$typeof')
+        );
+
+        if (isReactError && root) {
+          root.innerHTML = `
+            <div style="padding: 40px; text-align: center; font-family: sans-serif; color: #7f1d1d; background: #fef2f2; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+              <h2 style="font-weight: bold; font-size: 24px; margin-bottom: 10px;">Library Conflict Detected</h2>
+              <p style="margin-bottom: 20px; max-width: 500px; color: #991b1b;">Your browser loaded a mixture of React 18 and React 19. We have corrected the settings, but you need to clear your cache.</p>
+              <div style="margin-bottom: 30px; font-family: monospace; font-size: 11px; background: #fee2e2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca; text-align: left; max-width: 90%; overflow-x: auto; white-space: pre-wrap;">
+                ${event.message}
+              </div>
+              <button onclick="location.reload(true)" style="padding: 12px 28px; background: #b91c1c; color: white; border-radius: 99px; border: none; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                Hard Refresh & Clear Cache
+              </button>
+            </div>
+          `;
         }
       });
 
@@ -84,8 +88,8 @@
     <div id="root">
        <div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;font-family:sans-serif;color:#666;">
           <div style="width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          <div style="margin-top: 20px; font-weight: 500;">Initializing NoVelia...</div>
-          <div id="loading-subtext" style="margin-top: 10px; font-size: 12px; opacity: 0.7;">Restoring strictly to React 18...</div>
+          <div style="margin-top: 20px; font-weight: 500; color: #1e293b;">Restoring NoVelia...</div>
+          <div id="loading-subtext" style="margin-top: 10px; font-size: 12px; opacity: 0.6;">Cleaning up library versions</div>
        </div>
     </div>
     <script type="module" src="./index.tsx"></script>
