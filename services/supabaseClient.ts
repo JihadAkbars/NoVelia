@@ -14,34 +14,34 @@ const getEnv = (key: string) => {
 };
 
 // --- CONFIGURATION ---
-// Using the keys provided by the user
 const rawUrl = getEnv('REACT_APP_SUPABASE_URL') || 'https://cukaoncgoafbepvsnngi.supabase.co';
 const rawKey = getEnv('REACT_APP_SUPABASE_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1a2FvbmNnb2FmYmVwdnNubmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyMTk1MzIsImV4cCI6MjA4Mjc5NTUzMn0.-wOmTFO7e-Q93XEYLrgDtNoGqWMOrXMS8ahsbU_zAaQ';
 
-// Clean keys to ensure no whitespace issues
-const SUPABASE_URL = rawUrl.trim();
-const SUPABASE_KEY = rawKey.trim();
+const SUPABASE_URL = rawUrl ? rawUrl.trim() : '';
+const SUPABASE_KEY = rawKey ? rawKey.trim() : '';
 
 let supabaseClient = null;
 
 try {
-  // Check if URL is valid
   const isValidUrl = SUPABASE_URL && SUPABASE_URL.startsWith('http') && !SUPABASE_URL.includes('YOUR_SUPABASE');
 
   if (!isValidUrl) {
-    console.warn('⚠️ Supabase URL is invalid. App running in Offline/Local Storage mode.');
+    console.warn('[NoVelia] Supabase URL is invalid or missing. Falling back to local storage mode.');
     supabaseClient = null;
   } else {
     supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
+      },
+      global: {
+        headers: { 'x-application-name': 'novelia' },
       }
     });
-    console.log("Supabase client initialized successfully");
+    console.log("[NoVelia] Supabase client initialized.");
   }
 } catch (error) {
-  console.warn("Failed to initialize Supabase client (using offline mode):", error);
+  console.error("[NoVelia] Supabase initialization failed:", error);
   supabaseClient = null;
 }
 
